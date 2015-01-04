@@ -119,7 +119,7 @@ MBS/IP has two concepts of files, one of them is more like a request/reply strea
 
 Real files are not represented directly in the base protocol, instead all listing and manipulation of files is done using the XML request/reply commands.
 
-### XML request/reply
+### XML request/reply transfer flow
 
 The client "puts" an XML request, the server processes it, and the client immediately fetches the response. The involved commands look a bit like multi-plexed FTP control and data commands.
 
@@ -128,7 +128,7 @@ Client > `ELNEWFILESAMEPORT`, argument is a number representing the length of th
 
 Server < `150 Start to open data connection\r\n`.
 
-Client > compressed data
+Client > compressed data (XML command request)
 
 Server < empty OK reply
 
@@ -140,10 +140,35 @@ Client > `ELGETFILESAMEPORT`, argument is id from server.
 
 Server < `150 NNN start to open data connection\r\n`, `NNN` is the uncompressed data length that will be sent
 
-Server < compressed data
+Server < compressed data (XML command reply)
 
 Server < empty OK reply
 
 Client > `ELCHECK_RECVFILE`, argument is the uncompressed data length that has been received
 
 Server < OK reply with message  `Datei erfolgreich gesendet und als abgeholt markiert`
+
+XML commands
+------------
+
+XML commands are XML documents with no XML header.
+
+For requests (created by client), the root element is named `mbsip-request`, for replies (from server) the root element is named `mbsip-reply`.
+
+### `info`
+
+Retrieve some information from the server.
+
+Request element: `info`. There are no attributes, value is empty.
+
+Reply element: `info-reply`.
+
+Known reply attributes:
+
+* `deleteUser`: 0
+* `version`: `1.6.3-Release-2 (20131217)`
+* `groupID`: 0
+* `createUser`: 5
+* `homeDir`: `/`
+* `resetAnyPwd`: 10
+
