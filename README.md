@@ -50,10 +50,10 @@ Server responds with empty OK reply.
 
 ### ELCHECKCOMPRESS
 
-It is assumed that this enables gzip compression for data streams.
+Check support for gzip compression for data replies and retrieve minimum size after which compression will be used.
 
 Sent by the client after `ELCHECKSAMEPORT`.
-Server responds with empty OK reply.
+Server responds with an OK reply, argument indicates minimum size (bytes) for replies when compression will be applied. `0` is a valid minimum size (indicating that compression will always be used).
 
 ### ELPCPAKET
 
@@ -114,3 +114,36 @@ File transfer commands
 ----------------------
 
 As MBS/IP is a protocol for transfering files, it has commands to do so.
+
+MBS/IP has two concepts of files, one of them is more like a request/reply stream (usually XML gets sent around, so we'll call this concept XML request/reply from now on), and the other one is like a real file.
+
+Real files are not represented directly in the base protocol, instead all listing and manipulation of files is done using the XML request/reply commands.
+
+### XML request/reply
+
+The client "puts" an XML request, the server processes it, and the client immediately fetches the response. The involved commands look a bit like multi-plexed FTP control and data commands.
+
+
+Client > `ELNEWFILESAMEPORT`, argument is a number representing the length of the uncompressed data to be sent.
+
+Server < `150 Start to open data connection\r\n`.
+
+Client > compressed data
+
+Server < empty OK reply
+
+Client > `ELCHECK_SENDFILE`, argument again is uncompressed data length (from `ELNEWFILESAMEPORT` command)
+
+Server < OK reply with a number (stream id?)
+
+Client > `ELGETFILESAMEPORT`, argument is id from server.
+
+Server < `150 NNN start to open data connection\r\n`, `NNN` is the uncompressed data length that will be sent
+
+Server < compressed data
+
+Server < empty OK reply
+
+Client > `ELCHECK_RECVFILE`, argument is the uncompressed data length that has been received
+
+Server < OK reply with message  `Datei erfolgreich gesendet und als abgeholt markiert`
